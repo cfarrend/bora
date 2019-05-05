@@ -194,7 +194,11 @@ class Bora
 
     def template_default_parameters(cfn_options)
       params = nil
-      template = JSON.parse(cfn_options[:template_body])
+      begin
+        template = JSON.parse(cfn_options[:template_body])
+      rescue JSON::ParserError
+        template = YAML.safe_load(cfn_options[:template_body])
+      end
       if template['Parameters']
         params_with_defaults = template['Parameters'].select { |_, v| v['Default'] }
         unless params_with_defaults.empty?
@@ -331,7 +335,11 @@ class Bora
 
     def get_new_template(cfn_options)
       template = cfn_options[:template_body]
-      JSON.pretty_generate(JSON.parse(template))
+      begin
+        JSON.pretty_generate(JSON.parse(template))
+      rescue JSON::ParserError
+        template
+      end
     end
 
     def current_template
